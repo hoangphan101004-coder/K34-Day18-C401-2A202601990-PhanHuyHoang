@@ -1,8 +1,10 @@
 .env
 .DS_Store
 __pycache__/
+.venv*/
 *.pyc
 .pytest_cache/
 qdrant_data/
 *.egg-info/
-reports/*.json
+/ragas_report.json
+/naive_baseline_report.json

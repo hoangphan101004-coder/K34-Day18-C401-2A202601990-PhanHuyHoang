@@ -1,0 +1,11 @@
+{
+  "aggregate": {
+    "faithfulness": 1.0,
+    "answer_relevancy": 0.8192288267288268,
+    "context_precision": 0.95,
+    "context_recall": 0.8581564880481288,
+    "evaluation_mode": "local_lexical_fallback"
+  },
+  "num_questions": 20,
+  "failures": []
+}

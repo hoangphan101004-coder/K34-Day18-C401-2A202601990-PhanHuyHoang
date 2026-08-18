@@ -1,0 +1,112 @@
+{
+  "aggregate": {
+    "faithfulness": 0.8128787878787879,
+    "answer_relevancy": 0.7711809746756908,
+    "context_precision": 0.9416666666120832,
+    "context_recall": 0.7916666666666667,
+    "evaluation_mode": "ragas"
+  },
+  "num_questions": 20,
+  "failures": [
+    {
+      "question": "Nghỉ phép không lương 20 ngày cần ai phê duyệt?",
+      "answer": "Không tìm thấy.",
+      "ground_truth": "Nghỉ 16-30 ngày cần phê duyệt của Giám đốc điều hành (CEO). Lưu ý: nghỉ trên 14 ngày không lương, nhân viên phải tự đóng phần bảo hiểm của mình.",
+      "worst_metric": "faithfulness",
+      "score": 0.0,
+      "average_score": 0.375,
+      "diagnosis": "Câu trả lời có nội dung không được context hỗ trợ",
+      "suggested_fix": "Siết prompt và chỉ cho phép trích dẫn từ context"
+    },
+    {
+      "question": "Lương thử việc của nhân viên Junior mức cao nhất là bao nhiêu?",
+      "answer": "Lương thử việc của nhân viên Junior mức cao nhất là 17.000.000 VNĐ/tháng.",
+      "ground_truth": "Junior cao nhất là 20.000.000 VNĐ/tháng. Lương thử việc = 85% x 20.000.000 = 17.000.000 VNĐ/tháng.",
+      "worst_metric": "faithfulness",
+      "score": 0.0,
+      "average_score": 0.706,
+      "diagnosis": "Câu trả lời có nội dung không được context hỗ trợ",
+      "suggested_fix": "Siết prompt và chỉ cho phép trích dẫn từ context"
+    },
+    {
+      "question": "Nhân viên tạm ứng 15 triệu, sau 20 ngày mới thanh toán. Bị phạt bao nhiêu?",
+      "answer": "Nhân viên tạm ứng 15 triệu và sau 20 ngày mới thanh toán. Số tiền phạt sẽ tính như sau:\n\n- Thời gian quá hạn là 5 ngày (20 ngày - 15 ngày).\n- Phí phạt là 2%/tháng, tức 0.0667%/ngày (2%/30 ngày).\n\nSố tiền phạt = 15 triệu * 0.0667% * 5 ngày = 15 triệu * 0.000667 * 5 = 50.025. \n\nNhư vậy, nhân viên sẽ bị phạt khoảng 50.025 đồng.",
+      "ground_truth": "Thời hạn thanh toán là 15 ngày. Quá hạn 5 ngày, bị tính phí 2%/tháng trên 15.000.000 VNĐ = 300.000 VNĐ/tháng (tính pro-rata khoảng 50.000 VNĐ cho 5 ngày).",
+      "worst_metric": "faithfulness",
+      "score": 0.0909,
+      "average_score": 0.7277,
+      "diagnosis": "Câu trả lời có nội dung không được context hỗ trợ",
+      "suggested_fix": "Siết prompt và chỉ cho phép trích dẫn từ context"
+    },
+    {
+      "question": "Nhân viên thử việc có được hưởng bảo hiểm sức khỏe PVI không?",
+      "answer": "Không tìm thấy.",
+      "ground_truth": "KHÔNG. Nhân viên thử việc chưa được hưởng gói bảo hiểm sức khỏe PVI. Chỉ được tham gia bảo hiểm xã hội bắt buộc.",
+      "worst_metric": "answer_relevancy",
+      "score": 0.0,
+      "average_score": 0.75,
+      "diagnosis": "Câu trả lời chưa bám sát câu hỏi",
+      "suggested_fix": "Cải thiện prompt trả lời và xử lý loại câu hỏi"
+    },
+    {
+      "question": "Nếu cần mua một chiếc laptop 30 triệu cho nhân viên mới, ai phê duyệt và cần gì từ phòng CNTT?",
+      "answer": "Cần có xác nhận của phòng CNTT về cấu hình kỹ thuật của chiếc laptop trước khi đề xuất. Phê duyệt sẽ do trưởng phòng thực hiện, vì tạm ứng dưới 5.000.000 VNĐ.",
+      "ground_truth": "Laptop 30 triệu nằm trong khoảng 5-50 triệu nên cần Giám đốc phòng ban (Director) phê duyệt. Ngoài ra, mua sắm thiết bị CNTT cần có xác nhận cấu hình kỹ thuật từ phòng CNTT trước khi đề xuất. Cần đính kèm ít nhất 3 báo giá vì trên 10 triệu.",
+      "worst_metric": "faithfulness",
+      "score": 0.6667,
+      "average_score": 0.7812,
+      "diagnosis": "Câu trả lời có nội dung không được context hỗ trợ",
+      "suggested_fix": "Siết prompt và chỉ cho phép trích dẫn từ context"
+    },
+    {
+      "question": "Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt?",
+      "answer": "Cần Tổng Giám đốc (CEO) phê duyệt.",
+      "ground_truth": "Đơn hàng trên 50.000.000 VNĐ cần Tổng Giám đốc (CEO) phê duyệt.",
+      "worst_metric": "context_precision",
+      "score": 0.3333,
+      "average_score": 0.7817,
+      "diagnosis": "Context chứa nhiều đoạn không liên quan",
+      "suggested_fix": "Tăng chất lượng reranking hoặc lọc metadata"
+    },
+    {
+      "question": "Nhân viên được tài trợ khóa học 25 triệu, nghỉ việc sau 8 tháng hoàn thành khóa học. Phải hoàn trả bao nhiêu?",
+      "answer": "Nhân viên phải hoàn trả **100% chi phí** đào tạo đã được tài trợ, tức là **25 triệu VNĐ**.",
+      "ground_truth": "Nhân viên phải cam kết làm việc ít nhất 1 năm sau khi hoàn thành khóa học. Nghỉ sau 8 tháng là trước hạn cam kết, phải hoàn trả 100% chi phí tức 25.000.000 VNĐ.",
+      "worst_metric": "faithfulness",
+      "score": 0.5,
+      "average_score": 0.7838,
+      "diagnosis": "Câu trả lời có nội dung không được context hỗ trợ",
+      "suggested_fix": "Siết prompt và chỉ cho phép trích dẫn từ context"
+    },
+    {
+      "question": "Bao lâu phải đổi mật khẩu một lần?",
+      "answer": "Mật khẩu phải được thay đổi mỗi 120 ngày.",
+      "ground_truth": "Theo chính sách hiện hành (v2.0), mật khẩu phải được thay đổi mỗi 120 ngày. Chính sách cũ yêu cầu 90 ngày nhưng đã bị thay thế.",
+      "worst_metric": "context_recall",
+      "score": 0.5,
+      "average_score": 0.7908,
+      "diagnosis": "Retriever bỏ sót thông tin cần thiết",
+      "suggested_fix": "Điều chỉnh chunking, BM25 hoặc mở rộng top-k"
+    },
+    {
+      "question": "Mật khẩu phải có tối thiểu bao nhiêu ký tự?",
+      "answer": "Mật khẩu phải có tối thiểu 12 ký tự.",
+      "ground_truth": "Theo chính sách hiện hành (v2.0), mật khẩu phải có tối thiểu 12 ký tự. Chính sách cũ (v1.0) yêu cầu 8 ký tự nhưng đã bị thay thế.",
+      "worst_metric": "context_recall",
+      "score": 0.5,
+      "average_score": 0.837,
+      "diagnosis": "Retriever bỏ sót thông tin cần thiết",
+      "suggested_fix": "Điều chỉnh chunking, BM25 hoặc mở rộng top-k"
+    },
+    {
+      "question": "Khi phát hiện malware trên máy, nhân viên có nên tự xử lý không?",
+      "answer": "Không, nhân viên tuyệt đối **không tự ý xử lý malware** mà không có sự hướng dẫn của đội CNTT.",
+      "ground_truth": "KHÔNG. Nhân viên tuyệt đối không được tự ý xử lý malware. Phải báo cáo trong vòng 1 giờ qua helpdesk@cty.vn hoặc hotline CNTT. Tự ý xử lý bị coi là vi phạm nghiêm trọng.",
+      "worst_metric": "context_recall",
+      "score": 0.6667,
+      "average_score": 0.8406,
+      "diagnosis": "Retriever bỏ sót thông tin cần thiết",
+      "suggested_fix": "Điều chỉnh chunking, BM25 hoặc mở rộng top-k"
+    }
+  ]
+}

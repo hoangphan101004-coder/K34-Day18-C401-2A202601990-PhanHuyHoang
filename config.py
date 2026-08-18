@@ -6,7 +6,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- API Keys ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+_openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_API_KEY = "" if _openai_key in {"", "sk-...", "sk-your-key-here"} else _openai_key
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+# External calls are opt-in so tests and local demos never create surprise cost.
+OPENAI_ENRICHMENT_ENABLED = _env_flag("OPENAI_ENRICHMENT_ENABLED", False)
+OPENAI_ANSWERS_ENABLED = _env_flag("OPENAI_ANSWERS_ENABLED", False)
+RAGAS_ENABLED = _env_flag("RAGAS_ENABLED", False)
 
 # --- Qdrant ---
 QDRANT_HOST = "localhost"

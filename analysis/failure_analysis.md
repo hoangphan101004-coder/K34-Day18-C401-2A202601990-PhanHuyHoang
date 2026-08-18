@@ -1,51 +1,64 @@
-# Failure Analysis — Lab 18: Production RAG
+# Failure Analysis - Lab 18: Production RAG
 
-**Nhóm:** [Tên nhóm]  
-**Thành viên:** [Tên 1 → M1] · [Tên 2 → M2] · [Tên 3 → M3] · [Tên 4 → M4]
+**Sinh viên:** Phan Huy Hoang
 
----
+**Nguồn:** `reports/ragas_report.json`
 
-## RAGAS Scores
+**Chế độ đánh giá:** RAGAS qua OpenAI, 20 câu hỏi
 
-| Metric | Naive Baseline | Production | Δ |
-|--------|---------------|------------|---|
-| Faithfulness | | | |
-| Answer Relevancy | | | |
-| Context Precision | | | |
-| Context Recall | | | |
+## Điểm Production RAGAS
 
-## Bottom-5 Failures
+| Metric | Score | Đạt 0.75 |
+|---|---:|:---:|
+| Faithfulness | 0.8129 | Có |
+| Answer relevancy | 0.7712 | Có |
+| Context precision | 0.9417 | Có |
+| Context recall | 0.7917 | Có |
 
-### #1
-- **Question:**
-- **Expected:**
-- **Got:**
-- **Worst metric:**
-- **Error Tree:** Output sai → Context đúng? → Query OK? →
-- **Root cause:**
-- **Suggested fix:**
+Baseline hiện vẫn là `local_lexical_fallback`, vì vậy không đưa vào bảng so sánh chính thức cho đến khi baseline contexts được phê duyệt và chấm bằng cùng RAGAS pipeline.
 
-### #2
-(copy template)
+## Bottom-5 failures
 
-### #3
-(copy template)
+### 1. Nghỉ phép không lương 20 ngày
 
-### #4
-(copy template)
+- **Kết quả:** `Không tìm thấy.`
+- **Worst metric:** Faithfulness = 0.0000.
+- **Root cause:** Các context chưa làm nổi bật đồng thời ngưỡng 16-30 ngày và ảnh hưởng bảo hiểm trên 14 ngày.
+- **Suggested fix:** Query decomposition theo `phê duyệt` và `bảo hiểm`, sau đó merge context cùng source.
 
-### #5
-(copy template)
+### 2. Lương thử việc Junior cao nhất
 
-## Case Study (cho presentation)
+- **Kết quả:** Trả đúng 17.000.000 VNĐ nhưng RAGAS faithfulness = 0 vì context không chứa đầy đủ phép tính trong cùng evidence span.
+- **Worst metric:** Faithfulness = 0.0000.
+- **Root cause:** Bảng lương Junior và quy tắc 85% nằm ở các đoạn khác nhau.
+- **Suggested fix:** Parent expansion hoặc row-aware table chunking trước khi tính toán.
 
-**Question chọn phân tích:**
+### 3. Tạm ứng 15 triệu, thanh toán sau 20 ngày
 
-**Error Tree walkthrough:**
-1. Output đúng? →
-2. Context đúng? →
-3. Query rewrite OK? →
-4. Fix ở bước:
+- **Kết quả:** Tính khoảng 50.025 đồng, gần ground-truth 50.000 đồng.
+- **Worst metric:** Faithfulness = 0.0909.
+- **Root cause:** LLM tự thực hiện phép tính từ quy tắc 2%/tháng; phép tính chi tiết không xuất hiện nguyên văn trong context.
+- **Suggested fix:** Dùng calculator tool và trả kèm công thức cùng evidence nguồn.
 
-**Nếu có thêm 1 giờ, sẽ optimize:**
--
+### 4. Nhân viên thử việc có hưởng PVI không
+
+- **Kết quả:** `Không tìm thấy.`
+- **Worst metric:** Answer relevancy = 0.0000.
+- **Root cause:** Retriever chưa đưa câu phủ định về đối tượng thử việc vào top context.
+- **Suggested fix:** Tăng trọng số từ khóa phủ định và metadata `employment_status=probation`.
+
+### 5. Laptop 30 triệu và xác nhận CNTT
+
+- **Kết quả:** Đúng phần xác nhận CNTT nhưng chọn sai người phê duyệt và thiếu ba báo giá.
+- **Worst metric:** Faithfulness = 0.6667.
+- **Root cause:** Query nhiều điều kiện bị nhiễu bởi chính sách tạm ứng có cùng token số tiền/phê duyệt.
+- **Suggested fix:** Tách query thành ba nhánh `approval threshold`, `IT confirmation`, `quotation count` rồi chỉ merge context từ `mua_sam.md`.
+
+## Case study versioning
+
+**Câu hỏi:** Bao lâu phải đổi mật khẩu một lần?
+
+1. Hybrid search có thể lấy cả chính sách cũ và hiện hành.
+2. Version-aware reranking phạt source `_v1` và ưu tiên `_v2`.
+3. Demo runtime trả `120 ngày`; cả ba context đều thuộc v2.0.
+4. Production tiếp theo nên dùng metadata chuẩn `version`, `status`, `effective_date`, `supersedes` thay cho suy luận tên file.

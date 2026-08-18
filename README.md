@@ -21,7 +21,7 @@ Xem **ASSIGNMENT.md** để biết chi tiết từng module và timeline.
 | Dependency | Bắt buộc? | Dùng cho |
 |-----------|-----------|----------|
 | Docker (Qdrant) | ✅ Có | M2 Dense Search |
-| Python 3.11+ | ✅ Có | Tất cả modules (RAGAS cần 3.11+ cho asyncio) |
+| Python 3.11 | ✅ Có | Dependency cũ của lab (NumPy 1.26) chưa tương thích Python 3.13 |
 | `OPENAI_API_KEY` | ⚠️ M4+M5 | RAGAS eval (M4), Enrichment LLM (M5) |
 
 **Pre-download models** (tránh timeout trong lab):
@@ -40,6 +40,44 @@ pip install -r requirements.txt
 cp .env.example .env                    # Điền API keys
 python naive_baseline.py                # ⚠️ Chạy TRƯỚC để có baseline
 ```
+
+### Windows PowerShell
+
+```powershell
+py -3.11 -m venv .venv311
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv311\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r .\requirements.txt
+Copy-Item .\.env.example .\.env
+docker compose up -d --force-recreate qdrant
+```
+
+Các lượt gọi OpenAI mặc định tắt để test/demo local không phát sinh chi phí. Chỉ bật công đoạn cần dùng trong `.env`:
+
+```env
+OPENAI_ENRICHMENT_ENABLED=false
+OPENAI_ANSWERS_ENABLED=false
+RAGAS_ENABLED=false
+```
+
+`OPENAI_ENRICHMENT_ENABLED=true` tạo một API call cho mỗi chunk. Việc bật answer/RAGAS sẽ gửi câu hỏi, context và ground-truth tới OpenAI.
+
+## Demo hỏi đáp
+
+Sau khi đã chạy pipeline ít nhất một lần để tạo Qdrant index:
+
+```powershell
+python .\demo.py --question "Bao lâu phải đổi mật khẩu một lần?" --show-context
+```
+
+Chế độ tương tác:
+
+```powershell
+python .\demo.py
+```
+
+Thêm `--rebuild` khi corpus thay đổi; nếu không, demo tái sử dụng dense vectors trong Qdrant và chỉ rebuild BM25.
 
 ## Chạy toàn bộ
 

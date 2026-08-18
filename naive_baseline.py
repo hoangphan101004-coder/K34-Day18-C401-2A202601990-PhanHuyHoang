@@ -8,6 +8,8 @@ Basic = paragraph chunking + dense-only search (không hybrid, không rerank, kh
 import sys, os, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from src.m1_chunking import load_documents, chunk_basic
 from src.m2_search import DenseSearch
@@ -34,9 +36,9 @@ def main():
     test_set = load_test_set()
     questions, answers, all_contexts, ground_truths = [], [], [], []
 
-    from config import OPENAI_API_KEY
+    from config import OPENAI_ANSWERS_ENABLED, OPENAI_API_KEY
     llm_client = None
-    if OPENAI_API_KEY:
+    if OPENAI_ANSWERS_ENABLED and OPENAI_API_KEY:
         from openai import OpenAI
         llm_client = OpenAI()
 
@@ -67,7 +69,8 @@ def main():
     print("\nBASIC BASELINE SCORES")
     for m in ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]:
         print(f"  {m}: {results.get(m, 0):.4f}")
-    save_report(results, [], path="naive_baseline_report.json")
+    os.makedirs("reports", exist_ok=True)
+    save_report(results, [], path="reports/naive_baseline_report.json")
     print("\nDone! Now implement advanced modules and run: python main.py")
 
 

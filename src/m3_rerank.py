@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Module 3: Reranking — Cross-encoder top-20 → top-3 + latency benchmark."""
 
-import os, sys, time
+import os, sys, time, re
 from dataclasses import dataclass
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,34 +19,81 @@ class RerankResult:
 
 
 class CrossEncoderReranker:
+    _model_cache: dict[str, object | None] = {}
+
     def __init__(self, model_name: str = "BAAI/bge-reranker-v2-m3"):
         self.model_name = model_name
         self._model = None
 
     def _load_model(self):
         if self._model is None:
-            # TODO: Load cross-encoder model
-            # from sentence_transformers import CrossEncoder
-            # self._model = CrossEncoder(self.model_name)
-            #
-            # ⚠️ LƯU Ý: Dùng sentence_transformers.CrossEncoder, KHÔNG dùng FlagEmbedding.
-            # FlagReranker crash với transformers>=5.0 (XLMRobertaTokenizer lỗi).
-            pass
+            if self.model_name not in self._model_cache:
+                try:
+                    from sentence_transformers import CrossEncoder
+
+                    self._model_cache[self.model_name] = CrossEncoder(self.model_name)
+                except Exception as exc:
+                    print(f"  Warning: reranker model unavailable ({exc}); using lexical reranking.")
+                    self._model_cache[self.model_name] = None
+            self._model = self._model_cache[self.model_name]
         return self._model
 
     def rerank(self, query: str, documents: list[dict], top_k: int = RERANK_TOP_K) -> list[RerankResult]:
         """Rerank documents: top-20 → top-k."""
-        # TODO: Implement reranking
-        # 1. if not documents: return []
-        # 2. model = self._load_model()
-        # 3. pairs = [(query, doc["text"]) for doc in documents]
-        # 4. scores = model.predict(pairs)
-        # 5. if isinstance(scores, (int, float)): scores = [scores]
-        # 6. scored = sorted(zip(scores, documents), key=lambda x: x[0], reverse=True)
-        # 7. Return [RerankResult(text=..., original_score=doc.get("score", 0.0),
-        #            rerank_score=float(score), metadata=..., rank=i)
-        #            for i, (score, doc) in enumerate(scored[:top_k])]
-        return []
+        if not documents or top_k <= 0:
+            return []
+
+        model = self._load_model()
+        if model is not None:
+            try:
+                import numpy as np
+
+                pairs = [(query, document.get("text", "")) for document in documents]
+                scores = np.asarray(model.predict(pairs, show_progress_bar=False)).reshape(-1)
+            except Exception as exc:
+                print(f"  Warning: reranker inference failed ({exc}); using lexical reranking.")
+                scores = [_lexical_rerank_score(query, document) for document in documents]
+        else:
+            scores = [_lexical_rerank_score(query, document) for document in documents]
+
+        adjusted_scores = [
+            float(score) + _version_adjustment(document)
+            for score, document in zip(scores, documents)
+        ]
+        scored = sorted(
+            zip(adjusted_scores, documents), key=lambda item: item[0], reverse=True
+        )[:top_k]
+        return [
+            RerankResult(
+                text=document.get("text", ""),
+                original_score=float(document.get("score", 0.0)),
+                rerank_score=float(score),
+                metadata=dict(document.get("metadata", {})),
+                rank=rank,
+            )
+            for rank, (score, document) in enumerate(scored, start=1)
+        ]
+
+
+def _lexical_rerank_score(query: str, document: dict) -> float:
+    query_tokens = set(re.findall(r"\w+", query.lower(), flags=re.UNICODE))
+    document_tokens = set(re.findall(r"\w+", document.get("text", "").lower(), flags=re.UNICODE))
+    overlap = len(query_tokens & document_tokens) / max(len(query_tokens), 1)
+    return overlap + 0.01 * float(document.get("score", 0.0))
+
+
+def _version_adjustment(document: dict) -> float:
+    """Prefer current policy versions when a superseded and current copy coexist."""
+    metadata = document.get("metadata", {})
+    source = str(metadata.get("source", "")).lower()
+    text = document.get("text", "").lower()
+    if any(marker in text for marker in ("trạng thái: đã thay thế", "phiên bản cũ")):
+        return -3.0
+    if any(marker in source for marker in ("_v1.", "_v2023.")):
+        return -3.0
+    if any(marker in source for marker in ("_v2.", "_v2024.")) or "phiên bản hiện hành" in text:
+        return 0.5
+    return 0.0
 
 
 class FlashrankReranker:

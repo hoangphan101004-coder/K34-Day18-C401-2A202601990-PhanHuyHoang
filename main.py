@@ -9,7 +9,11 @@ Usage:
 
 import json
 import os
+import sys
 import time
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def main():
@@ -33,10 +37,11 @@ def main():
     search, reranker = build_pipeline()
     prod_results = evaluate_pipeline(search, reranker)
 
-    # Move reports to reports/
+    # Backward compatibility for reports created by older versions.
     for f in ["ragas_report.json", "naive_baseline_report.json"]:
-        if os.path.exists(f):
-            os.rename(f, f"reports/{f}")
+        destination = f"reports/{f}"
+        if os.path.exists(f) and not os.path.exists(destination):
+            os.replace(f, destination)
 
     # Step 3: Comparison
     print("\n📌 STEP 3: Comparison")
